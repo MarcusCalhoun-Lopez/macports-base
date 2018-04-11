@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2016 The MacPorts Project
+# Copyright (c) 2004-2017 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1164,11 +1164,12 @@ proc move {args} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
         switch -- $arg {
-            force {append options -$arg}
+            force {lappend options -$arg}
             - break
             default {return -code error "move: illegal option -- $arg"}
         }
     }
+    lappend options --
     if {[llength $args] == 2} {
         set oldname [lindex $args 0]
         set newname [lindex $args 1]
@@ -1176,13 +1177,13 @@ proc move {args} {
             # case-only rename
             set tempdir [mkdtemp ${oldname}-XXXXXXXX]
             set tempname $tempdir/[file tail $oldname]
-            file rename $options -- $oldname $tempname
-            file rename $options -- $tempname $newname
+            file rename {*}$options $oldname $tempname
+            file rename {*}$options $tempname $newname
             delete $tempdir
             return
         }
     }
-    file rename {*}$options -- {*}$args
+    file rename {*}$options {*}$args
 }
 
 # ln
@@ -2332,7 +2333,7 @@ proc adduser {name args} {
             set failed? 1
         } catch {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
-                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
@@ -2430,7 +2431,7 @@ proc addgroup {name args} {
             set failed? 1
         } catch {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
-                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
@@ -3187,12 +3188,17 @@ proc _check_xcode_version {} {
             10.12 {
                 set min 8.0
                 set ok 8.0
-                set rec 8.2.1
+                set rec 9.2
+            }
+            10.13 {
+                set min 9.0
+                set ok 9.0
+                set rec 9.3
             }
             default {
-                set min 8.0
-                set ok 8.0
-                set rec 8.2.1
+                set min 9.0
+                set ok 9.0
+                set rec 9.3
             }
         }
         if {$xcodeversion eq "none"} {
